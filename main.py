@@ -18,7 +18,7 @@ spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('SPOT
 spotipy_client = spotipy.Spotify(client_credentials_manager=spotipy_credentials_manager,auth_manager=SpotifyOAuth(scope=scope,redirect_uri="http://localhost:8080/"))
 
 spotify_username = spotipy_client.current_user()['display_name']
-spotify_ranges = ['short_term', 'medium_term', 'long_term']
+# spotify_ranges = ['short_term', 'medium_term', 'long_term']
 
 # print msg when the bot is online
 @discord_client.event
@@ -40,14 +40,10 @@ async def on_message(message):
         playlists = spotipy_client.user_playlists(user=spotify_username)
         embeded_message = discord.Embed(title="{}'s Playlists".format(spotify_username), description="", color=0x50c878)
         embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
-        while playlists:
-            for i, playlist in enumerate(playlists['items']):
-                embeded_message.add_field(name=str(str(i+1) + ". "),value=playlist['name'], inline=True)
 
-            if playlists['next']:
-                playlists = spotipy_client.next(playlists)
-            else:
-                break    
+        for i, playlist in enumerate(playlists['items']):
+            embeded_message.add_field(name=str(str(i+1) + ". "),value=playlist['name'], inline=True)
+ 
             
         await message.channel.send(embed=embeded_message)
     
@@ -70,6 +66,23 @@ async def on_message(message):
             embeded_message.add_field(name=str(str(i+1) + ". "),value="{artist}".format(artist = artist['name']), inline=False)
             
         await message.channel.send(embed=embeded_message)
+
+    # Recommend tracks to the user based on their top track and artist
+    if message.content.startswith('$recommend'):
+        embeded_message = discord.Embed(title="Track and Artist Suggestions for {}".format(spotify_username), description="", color=0x50c878)
+        embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
+
+        top_tracks = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)['items']
+        top_artists = results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)['items']
+
+        recommendations = spotipy_client.recommendations(seed_artists=[top_artists[0]['id']], seed_tracks=[top_tracks[0]['id']], limit=20)
+
+        embeded_message.add_field(name="Recommended Tracks: ", value="---------------", inline=False)
+        for i,track in enumerate(recommendations['tracks']):
+            embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist}".format(song = track['name'], artist = track['artists'][0]['name']), inline=False)
+
+        await message.channel.send(embed=embeded_message)
+
 
 # run bot with login token
 discord_client.run(os.getenv('TOKEN'))
