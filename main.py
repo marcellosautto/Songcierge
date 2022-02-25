@@ -14,8 +14,8 @@ load_dotenv(".env")
 discord_client = discord.Client()
 
 scope = 'user-read-private,user-top-read'
-spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('SPOTIPY_CLIENT_ID'),client_secret=os.getenv('SPOTIPY_CLIENT_SECRET'))
-spotipy_client = spotipy.Spotify(client_credentials_manager=spotipy_credentials_manager,auth_manager=SpotifyOAuth(scope=scope,redirect_uri="http://localhost:8080/"))
+# spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('SPOTIPY_CLIENT_ID'),client_secret=os.getenv('SPOTIPY_CLIENT_SECRET'))
+spotipy_client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope,redirect_uri="http://localhost:8080/"))
 
 spotify_username = spotipy_client.current_user()['display_name']
 # spotify_ranges = ['short_term', 'medium_term', 'long_term']
@@ -37,7 +37,7 @@ async def on_message(message):
     # Print playlists
     if message.content.startswith('$playlists'):
 
-        playlists = spotipy_client.user_playlists(user=spotify_username)
+        playlists = spotipy_client.current_user_playlists()
         embeded_message = discord.Embed(title="{}'s Playlists".format(spotify_username), description="", color=0x50c878)
         embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
 
@@ -72,6 +72,7 @@ async def on_message(message):
         embeded_message = discord.Embed(title="Track and Artist Suggestions for {}".format(spotify_username), description="", color=0x50c878)
         embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
 
+
         top_tracks = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)['items']
         top_artists = results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)['items']
 
@@ -79,7 +80,7 @@ async def on_message(message):
 
         embeded_message.add_field(name="Recommended Tracks: ", value="---------------", inline=False)
         for i,track in enumerate(recommendations['tracks']):
-            embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist}".format(song = track['name'], artist = track['artists'][0]['name']), inline=False)
+            embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist} - {preview_url}".format(song = track['name'], artist = track['artists'][0]['name'], preview_url = track['preview_url']), inline=False)
 
         await message.channel.send(embed=embeded_message)
 
