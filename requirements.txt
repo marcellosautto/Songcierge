@@ -1,5 +1,6 @@
 discord.py
 spotipy
+python-dotenv
 PyNaCl==1.3.0
 pandas
 numpy
