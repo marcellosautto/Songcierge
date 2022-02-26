@@ -56,7 +56,7 @@ async def on_member_update(before, after, message):
             except OSError as e:
                 await message.channel.send("Error: %s - %s." % (e.filename, e.strerror))
 
-# The bot will say hello if the '$hello' command is executed
+@app.route("/me/")
 @discord_client.event
 async def on_message(message):
     if message.author == discord_client.user:
