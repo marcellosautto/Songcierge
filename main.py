@@ -35,7 +35,6 @@ def get_session_cache_path():
 # establish connection to discord and spotify web api
 discord_client = discord.Client()
 
-
 scope = 'user-read-private,user-top-read'
 # spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('spotipy_auth_manager_manager_manager_manager_ID'),client_secret=os.getenv('spotipy_auth_manager_manager_manager_manager_SECRET'))
 # spotify_ranges = ['short_term', 'medium_term', 'long_term']
@@ -82,7 +81,7 @@ async def on_message(message):
     if request.args.get("code"):
         # Step 3. Being redirected from Spotify auth page
         spotipy_auth_manager.get_access_token(request.args.get("code"))
-        return redirect('/')
+        return
 
     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
         # Step 2. Display sign in link when no token
