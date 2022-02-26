@@ -1,6 +1,9 @@
 discord.py
 spotipy
 python-dotenv
+uuid
+Flask
+Flask-Session
 PyNaCl==1.3.0
 pandas
 numpy
