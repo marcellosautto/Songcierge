@@ -15,7 +15,7 @@ discord_client = discord.Client()
 
 scope = 'user-read-private,user-top-read'
 # spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('SPOTIPY_CLIENT_ID'),client_secret=os.getenv('SPOTIPY_CLIENT_SECRET'))
-spotipy_client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope,redirect_uri="http://localhost:8080/"))
+spotipy_client = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope,redirect_uri="https://git.heroku.com/songcierge-bot.git/"))
 
 spotify_username = spotipy_client.current_user()['display_name']
 # spotify_ranges = ['short_term', 'medium_term', 'long_term']
