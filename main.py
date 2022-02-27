@@ -8,8 +8,8 @@ from discord.ext import commands
 # import asyncio
 # import motor.motor_asyncio
 import spotipy
-# import uuid
-# import logging
+import uuid
+import logging
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
 load_dotenv(".env")
@@ -70,10 +70,10 @@ async def playlists(ctx):
     # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     username = ctx.message.author.name
     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://git.heroku.com/songcierge-bot.git/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
-    if not spotipy_auth_manager.cache_handler.get_cached_token():
+    if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
         # Step 2. Display sign in link when no token
         auth_url = spotipy_auth_manager.get_auth_response()
         spotipy_auth_manager.get_access_token(spotipy_auth_manager.parse_response_code(auth_url))
@@ -94,7 +94,7 @@ async def favorites(ctx):
 
     username = ctx.message.author.name
     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://git.heroku.com/songcierge-bot.git/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
     embeded_message = discord.Embed(title="{}'s Favorites".format(username), description="", color=0x50c878)
@@ -122,7 +122,7 @@ async def recommend(ctx):
 
     username = ctx.message.author.name
     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://git.heroku.com/songcierge-bot.git/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     
     embeded_message = discord.Embed(title="Track and Artist Suggestions for {}".format(username), description="", color=0x50c878)
