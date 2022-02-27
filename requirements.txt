@@ -2,8 +2,8 @@ discord.py
 spotipy
 python-dotenv
 uuid
-Flask
-Flask-Session
+motor
+dnspython
 PyNaCl==1.3.0
 pandas
 numpy

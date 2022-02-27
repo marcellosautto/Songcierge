@@ -4,165 +4,165 @@ import sys
 import discord
 from discord import embeds
 from discord import user
+from discord.ext import commands
+# import asyncio
+# import motor.motor_asyncio
 import spotipy
-from flask import Flask, session, request, redirect
-from flask_session import Session
-import uuid
-# from spotipy.oauth2 import SpotifyClientCredentials
+# import uuid
+# import logging
 from spotipy.oauth2 import SpotifyOAuth
 from dotenv import load_dotenv
 load_dotenv(".env")
 
-
-#initialize flask session
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(64)
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = './.flask_session/'
-Session(app)
-
+# Local code
+# import utils.mongo_config
+# from utils.mongo_config import Document
+import utils.mongodb_cache
+from utils.mongodb_cache import MongoDBCacheHandler
 
 #initialize cache directory
-caches_directory = './.spotipy_caches/'
-
-if not os.path.exists(caches_directory):
-    os.makedirs(caches_directory)
-
-#getter for cache path
-def get_session_cache_path():
-    return caches_directory + session.get('uuid')
+caches_directory = './.spotipy_caches/cache.json'
+scope = 'user-read-private,user-top-read'
 
 # establish connection to discord and spotify web api
-discord_client = discord.Client()
+discord_bot = commands.Bot(command_prefix='!')
+# discord_bot.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(os.getenv("MONGO_DB_CONNECTION_URL")))
+# discord_bot.db = discord_bot.mongo["songcierge"]
+# cache_handler = MongoDBCacheHandler(connection=discord_bot.db, document_name="cache_config", key=None)
+cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
+spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://git.heroku.com/songcierge-bot.git/callback', show_dialog=True)
+spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
-scope = 'user-read-private,user-top-read'
 # spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('spotipy_auth_manager_manager_manager_manager_ID'),client_secret=os.getenv('spotipy_auth_manager_manager_manager_manager_SECRET'))
 # spotify_ranges = ['short_term', 'medium_term', 'long_term']
 
+
 # print msg when the bot is online
-@discord_client.event
+@discord_bot.event
 async def on_ready():
-    print('Logged in as {0.user}'.format(discord_client))
+
+
+    # spotify_username = spotipy_auth_manager.current_user()['display_name']
+    print('Logged in as {0.user}'.format(discord_bot))
 
 # free cache of user client if they go offline
-@discord_client.event
-async def on_member_update(before, after, message):
-    if str(before.status) == "online":
-        if str(after.status) == "offline":
-            try:
-        # Remove the CACHE file (.cache-test) so that a new user can authorize.
-                os.remove(get_session_cache_path())
-                session.clear()
-            except OSError as e:
-                await message.channel.send("Error: %s - %s." % (e.filename, e.strerror))
-
-@app.route("/me/")
-@discord_client.event
-async def on_message(message):
-    if message.author == discord_client.user:
-        return
-
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello!')
-
-    ############# HANDLE AUTHENTICATION CONDITIONS #############
-
-    # Assign uuid to unknown user
-    if not session.get('uuid'):
-        session['uuid'] = str(uuid.uuid4())
-
-    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=get_session_cache_path())
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,
-                                                cache_handler=cache_handler,
-                                                redirect_uri="https://git.heroku.com/songcierge-bot.git/", 
-                                                show_dialog=True)
-    spotify_username = spotipy_auth_manager.current_user()['display_name']
-
-    if request.args.get("code"):
-        # Step 3. Being redirected from Spotify auth page
-        spotipy_auth_manager.get_access_token(request.args.get("code"))
-        return
-
-    if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
-        # Step 2. Display sign in link when no token
-        auth_url = spotipy_auth_manager.get_authorize_url()
-        await message.channel.send('Sign in to Spotify here ---> {auth_url}')
+# @discord_bot.event
+# async def on_member_update(before, after, message):
+#     if str(before.status) == "online":
+#         if str(after.status) == "offline":
+#             try:
+#         # Remove the CACHE file (.cache-test) so that a new user can authorize.
+#                 os.remove(get_session_cache_path())
+#                 session.clear()
+#             except OSError as e:
+#                 await message.channel.send("Error: %s - %s." % (e.filename, e.strerror))
 
 
+@discord_bot.command()
+async def hello(ctx):
+    username = ctx.message.author.name
+    await ctx.send(f'Hello, {username}!')
+
+ # Print playlists
+@discord_bot.command()
+async def playlists(ctx):
+
+    # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    username = ctx.message.author.name
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
-    # Print playlists
-    if message.content.startswith('$playlists'):
+    if not spotipy_auth_manager.cache_handler.get_cached_token():
+        # Step 2. Display sign in link when no token
+        auth_url = spotipy_auth_manager.get_auth_response()
+        spotipy_auth_manager.get_access_token(spotipy_auth_manager.parse_response_code(auth_url))
 
-        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=get_session_cache_path())
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return
+    playlists=spotipy_client.current_user_playlists()
+    embeded_message = discord.Embed(title="{}'s Playlists".format(username), description="", color=0x50c878)
+    embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
 
-        spotipy_client = spotipy.Spotify(auth_manager=auth_manager)
-
-        playlists =spotipy_client.current_user_playlists()
-        embeded_message = discord.Embed(title="{}'s Playlists".format(spotify_username), description="", color=0x50c878)
-        embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
-
-        for i, playlist in enumerate(playlists['items']):
-            embeded_message.add_field(name=str(str(i+1) + ". "),value=playlist['name'], inline=True)
+    for i, playlist in enumerate(playlists['items']):
+        embeded_message.add_field(name=str(str(i+1) + ". "),value=playlist['name'], inline=True)
  
             
-        await message.channel.send(embed=embeded_message)
-    
-    # Print favorite songs and artists
-    if message.content.startswith('$favorites'):
-        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=get_session_cache_path())
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return
+    await ctx.send(embed=embeded_message)
 
-        spotipy_client = spotipy.Spotify(auth_manager=auth_manager)
+# Print favorite songs and artists
+@discord_bot.command()
+async def favorites(ctx):
 
-        embeded_message = discord.Embed(title="{}'s Favorites".format(spotify_username), description="", color=0x50c878)
-        embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
-        embeded_message.add_field(name="Top Tracks: ", value="---------------", inline=False)
+    username = ctx.message.author.name
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
+    spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
-        results = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)
+    embeded_message = discord.Embed(title="{}'s Favorites".format(username), description="", color=0x50c878)
+    embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
+    embeded_message.add_field(name="Top Tracks: ", value="---------------", inline=False)
 
-        for i, track in enumerate(results['items']):
-            embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist}".format(song = track['name'], artist = track['artists'][0]['name']), inline=False)
+    results = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)
+
+    for i, track in enumerate(results['items']):
+        embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist}".format(song = track['name'], artist = track['artists'][0]['name']), inline=False)
 
         
-        embeded_message.add_field(name="Top Artists: ", value="---------------", inline=False)
+    embeded_message.add_field(name="Top Artists: ", value="---------------", inline=False)
 
-        results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)
-        for i, artist in enumerate(results['items']):
-            embeded_message.add_field(name=str(str(i+1) + ". "),value="{artist}".format(artist = artist['name']), inline=False)
+    results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)
+    for i, artist in enumerate(results['items']):
+        embeded_message.add_field(name=str(str(i+1) + ". "),value="{artist}".format(artist = artist['name']), inline=False)
             
-        await message.channel.send(embed=embeded_message)
+    await ctx.send(embed=embeded_message)
 
-    # Recommend tracks to the user based on their top track and artist
-    if message.content.startswith('$recommend'):
+#recommend songs to user
+@discord_bot.command()
+async def recommend(ctx):
+        # Recommend tracks to the user based on their top track and artist
 
-        cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=get_session_cache_path())
-        auth_manager = spotipy.oauth2.SpotifyOAuth(cache_handler=cache_handler)
-        if not auth_manager.validate_token(cache_handler.get_cached_token()):
-            return
-
-        spotipy_client = spotipy.Spotify(auth_manager=auth_manager)
-
-        embeded_message = discord.Embed(title="Track and Artist Suggestions for {}".format(spotify_username), description="", color=0x50c878)
-        embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
-
-
-        top_tracks = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)['items']
-        top_artists = results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)['items']
-
-        recommendations = spotipy_client.recommendations(seed_artists=[top_artists[0]['id']], seed_tracks=[top_tracks[0]['id']], limit=20)
-
-        embeded_message.add_field(name="Recommended Tracks: ", value="---------------", inline=False)
-        for i,track in enumerate(recommendations['tracks']):
-            embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist} - {preview_url}".format(song = track['name'], artist = track['artists'][0]['name'], preview_url = track['preview_url']), inline=False)
-
-        await message.channel.send(embed=embeded_message)
+    username = ctx.message.author.name
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
+    spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    
+    embeded_message = discord.Embed(title="Track and Artist Suggestions for {}".format(username), description="", color=0x50c878)
+    embeded_message.set_thumbnail(url=spotipy_client.current_user()['images'][0]['url'])
 
 
-# run bot with login token
-discord_client.run(os.getenv('TOKEN'))
+    top_tracks = spotipy_client.current_user_top_tracks(time_range='medium_term', limit=5)['items']
+    top_artists = results = spotipy_client.current_user_top_artists(time_range='medium_term', limit=5)['items']
+
+    recommendations = spotipy_client.recommendations(seed_artists=[top_artists[0]['id']], seed_tracks=[top_tracks[0]['id']], limit=20)
+
+    embeded_message.add_field(name="Recommended Tracks: ", value="---------------", inline=False)
+    for i,track in enumerate(recommendations['tracks']):
+        embeded_message.add_field(name=str(str(i+1) + ". "),value="{song} by {artist} - {preview_url}".format(song = track['name'], artist = track['artists'][0]['name'], preview_url = track['preview_url']), inline=False)
+
+    await ctx.send(embed=embeded_message)
+    
+#     ############# HANDLE AUTHENTICATION CONDITIONS #############
+
+#     # Assign uuid to unknown user
+    
+#     if not session.get('uuid'):
+#         session['uuid'] = str(uuid.uuid4())
+
+#     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=get_session_cache_path())
+#     spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,
+#                                                 cache_handler=cache_handler,
+#                                                 redirect_uri="https://git.heroku.com/songcierge-bot.git/", 
+#                                                 show_dialog=True)
+#     spotify_username = spotipy_auth_manager.current_user()['display_name']
+
+#     if request.args.get("code"):
+#         # Step 3. Being redirected from Spotify auth page
+#         spotipy_auth_manager.get_access_token(request.args.get("code"))
+#         return
+
+#     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
+#         # Step 2. Display sign in link when no token
+#         auth_url = spotipy_auth_manager.get_authorize_url()
+#         await message.channel.send('Sign in to Spotify here ---> {auth_url}')
+
+discord_bot.run(os.getenv('TOKEN'))
+    
