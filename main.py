@@ -66,7 +66,7 @@ async def playlists(ctx):
     # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     username = ctx.message.author.name
     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://Localhost:8888/callback', show_dialog=True)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://localhost:8888/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
