@@ -66,11 +66,12 @@ async def playlists(ctx):
     # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     username = ctx.message.author.name
     cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='http://Localhost:8888/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
         # Step 2. Display sign in link when no token
+        spotipy_auth_manager.get_auth_response()
         auth_code = spotipy_auth_manager.get_authorization_code(response=None)
         #auth_code = handle_auth(cache_handler=cache_handler, auth_manager=spotipy_auth_manager)
         spotipy_auth_manager.get_access_token(spotipy_auth_manager.parse_response_code(auth_code))
