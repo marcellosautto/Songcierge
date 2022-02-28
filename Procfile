@@ -1,1 +1,1 @@
-worker: python main.py
+web: gunicorn flask_app:run_thread
