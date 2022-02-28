@@ -18,7 +18,7 @@ load_dotenv(".env")
 from flask_app import run_thread
 
 #initialize cache directory
-caches_directory = './.spotipy_caches/cache.json'
+caches_directory = './.spotipy_caches/'
 scope = 'user-read-private,user-top-read'
 
 # establish connection to discord and spotify web api
@@ -34,8 +34,6 @@ spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 # print msg when the bot is online
 @discord_bot.event
 async def on_ready():
-
-
     # spotify_username = spotipy_auth_manager.current_user()['display_name']
     print('Logged in as {0.user}'.format(discord_bot))
 
@@ -51,7 +49,6 @@ async def on_ready():
 #             except OSError as e:
 #                 await message.channel.send("Error: %s - %s." % (e.filename, e.strerror))
 
-
 @discord_bot.command()
 async def hello(ctx):
     username = ctx.message.author.name
@@ -63,7 +60,7 @@ async def playlists(ctx):
 
     # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     username = ctx.message.author.name
-    cache_handler = spotipy.cache_handler.MemoryCacheHandler(token_info=None)
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=)
     spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
@@ -157,6 +154,5 @@ async def recommend(ctx):
 #         auth_url = spotipy_auth_manager.get_authorize_url()
 #         await message.channel.send('Sign in to Spotify here ---> {auth_url}')
 
-run_thread()
 discord_bot.run(os.getenv('TOKEN'))
     
