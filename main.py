@@ -154,5 +154,6 @@ async def recommend(ctx):
 #         auth_url = spotipy_auth_manager.get_authorize_url()
 #         await message.channel.send('Sign in to Spotify here ---> {auth_url}')
 
+run_thread()
 discord_bot.run(os.getenv('TOKEN'))
     
