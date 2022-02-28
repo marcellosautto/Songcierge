@@ -2,6 +2,8 @@ discord.py
 spotipy
 python-dotenv
 uuid
+Flask
+Thread
 gunicorn==19.4.5
 Werkzeug==0.11.3
 motor
