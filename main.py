@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 # Local code
-from flask_app import handle_redirect, run_thread, session_cache_path
+from flask_app import handle_auth, handle_redirect, run_thread, session_cache_path
 
 #initialize cache directory
 caches_directory = './.spotipy_caches/'
@@ -32,14 +32,14 @@ discord_bot = commands.Bot(command_prefix='!')
 @discord_bot.event
 async def on_ready():
     #spotify_username = spotipy_auth_manager.current_user()['display_name']
-    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
-    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
+    # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    # spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
 
-    if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
-        handle_redirect()
+    # if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
+    #     handle_redirect()
 
-    spotify = spotipy.Spotify(auth_manager=spotipy_auth_manager)
-    spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    # spotify = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     print('Logged in as {0.user}'.format(discord_bot))
 
 # free cache of user client if they go offline
@@ -71,7 +71,7 @@ async def playlists(ctx):
 
     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
         # Step 2. Display sign in link when no token
-        spotipy_auth_manager.get_cached_token()
+        handle_auth(cache_handler=cache_handler, auth_manager=spotipy_auth_manager)
 
     playlists=spotipy_client.current_user_playlists()
     embeded_message = discord.Embed(title="{}'s Playlists".format(username), description="", color=0x50c878)
