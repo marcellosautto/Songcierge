@@ -71,7 +71,8 @@ async def playlists(ctx):
 
     if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
         # Step 2. Display sign in link when no token
-        auth_code = handle_auth(cache_handler=cache_handler, auth_manager=spotipy_auth_manager)
+        auth_code = spotipy_auth_manager.get_authorization_code(response=None)
+        #auth_code = handle_auth(cache_handler=cache_handler, auth_manager=spotipy_auth_manager)
         spotipy_auth_manager.get_access_token(spotipy_auth_manager.parse_response_code(auth_code))
 
     playlists=spotipy_client.current_user_playlists()
