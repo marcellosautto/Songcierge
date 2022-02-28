@@ -2,8 +2,11 @@ discord.py
 spotipy
 python-dotenv
 uuid
-Flask
+Flask==0.10.1
 gunicorn==19.4.5
+itsdangerous==0.24
+Jinja2==2.8
+MarkupSafe==0.23
 Werkzeug==0.11.3
 motor
 dnspython
