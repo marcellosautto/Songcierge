@@ -31,15 +31,15 @@ discord_bot = commands.Bot(command_prefix='!')
 # print msg when the bot is online
 @discord_bot.event
 async def on_ready():
-    # spotify_username = spotipy_auth_manager.current_user()['display_name']
-    # cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
-    # spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
+    #spotify_username = spotipy_auth_manager.current_user()['display_name']
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
+    spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
 
-    # if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
-    #     handle_redirect()
+    if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
+        handle_redirect()
 
-    # spotify = spotipy.Spotify(auth_manager=spotipy_auth_manager)
-    # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    spotify = spotipy.Spotify(auth_manager=spotipy_auth_manager)
+    spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     print('Logged in as {0.user}'.format(discord_bot))
 
 # free cache of user client if they go offline
