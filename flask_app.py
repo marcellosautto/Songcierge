@@ -17,7 +17,8 @@ if not os.path.exists(caches_folder):
     os.makedirs(caches_folder)
 
 def session_cache_path():
-    return caches_folder + session.get('uuid')
+    with app.test_request_context('/'):
+        return caches_folder + session.get('uuid')
 
 def handle_redirect():
     return redirect("/")
