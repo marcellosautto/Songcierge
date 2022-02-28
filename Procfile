@@ -1,1 +1,1 @@
-web: gunicorn flask_app:run_thread
+web: gunicorn flask_app:app
