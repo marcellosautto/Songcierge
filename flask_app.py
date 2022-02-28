@@ -40,7 +40,7 @@ def handle_auth(cache_handler, auth_manager):
 
         if not auth_manager.validate_token(cache_handler.get_cached_token()):
             # Step 2. Display sign in link when no token
-            auth_url = auth_manager.get_authorization_code(response=None)
+            auth_url = auth_manager.get_authorization_code()
             return auth_url
 
 @app.route('/')
