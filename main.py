@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 # Local code
-from flask_app import run_thread
+from flask_app import handle_redirect, run_thread, session_cache_path
 
 #initialize cache directory
 caches_directory = './.spotipy_caches/'
@@ -23,8 +23,13 @@ scope = 'user-read-private,user-top-read'
 
 # establish connection to discord and spotify web api
 discord_bot = commands.Bot(command_prefix='!')
-cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=caches_directory)
+cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
 spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
+
+if not spotipy_auth_manager.validate_token(cache_handler.get_cached_token()):
+    handle_redirect()
+
+spotify = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
 # spotipy_credentials_manager = SpotifyClientCredentials(client_id=os.getenv('spotipy_auth_manager_manager_manager_manager_ID'),client_secret=os.getenv('spotipy_auth_manager_manager_manager_manager_SECRET'))
@@ -60,7 +65,7 @@ async def playlists(ctx):
 
     # spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
     username = ctx.message.author.name
-    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=)
+    cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=session_cache_path())
     spotipy_auth_manager = spotipy.oauth2.SpotifyOAuth(scope=scope,cache_handler=cache_handler,redirect_uri='https://songcierge-bot.herokuapp.com/callback', show_dialog=True)
     spotipy_client = spotipy.Spotify(auth_manager=spotipy_auth_manager)
 
